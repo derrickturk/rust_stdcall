@@ -44,5 +44,11 @@ library RustyVenture
          *   c.f. "Essential COM" p. 342
          */
         double dotty([in] SAFEARRAY (double)*xs, [in] SAFEARRAY (double)*ys);
+
+        [
+        entry("word_count"),
+        helpstring("count whitespace-separated words")
+        ]
+        int word_count([in] BSTR bstr);
     }
 };

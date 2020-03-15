@@ -4,3 +4,4 @@ EXPORTS
     dot_product
     struct_slope
     dotty
+    word_count

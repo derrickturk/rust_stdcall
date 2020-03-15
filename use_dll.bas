@@ -19,4 +19,6 @@ Public Sub do_it
     Debug.Print struct_slope(s)
 
     Debug.Print dotty(xs, ys)
+
+    Debug.Print word_count("xyzzy has four words")
 End Sub

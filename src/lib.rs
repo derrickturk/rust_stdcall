@@ -2,7 +2,10 @@ use std::{ptr, slice};
 
 use winapi::{
     ctypes::c_void,
-    shared::winerror::S_OK,
+    shared::{
+        winerror::S_OK,
+        wtypes::BSTR,
+    },
     um::{
         oaidl::{
             SAFEARRAY,
@@ -10,6 +13,7 @@ use winapi::{
         oleauto::{
             SafeArrayAccessData,
             SafeArrayUnaccessData,
+            SysStringLen,
         },
     },
 };
@@ -100,5 +104,15 @@ pub unsafe extern "stdcall" fn dotty(xs: *const *mut SAFEARRAY,
             dot_product_impl(xs.as_slice_mut(), ys.as_slice_mut())
         },
         _ => 0.0,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "stdcall" fn word_count(bstr: BSTR) -> i32 {
+    let bstr: &[u16] = slice::from_raw_parts(bstr, SysStringLen(bstr) as usize);
+    if let Ok(bstr) = String::from_utf16(bstr) {
+        bstr.split_whitespace().count() as i32
+    } else {
+        0
     }
 }
