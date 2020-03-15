@@ -50,5 +50,11 @@ library RustyVenture
         helpstring("count whitespace-separated words")
         ]
         int word_count([in] BSTR bstr);
+
+        [
+        entry("greet"),
+        helpstring("greet somebody")
+        ]
+        BSTR greet([in] BSTR whom);
     }
 };

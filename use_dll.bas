@@ -21,4 +21,6 @@ Public Sub do_it
     Debug.Print dotty(xs, ys)
 
     Debug.Print word_count("xyzzy has four words")
+
+    Debug.Print greet("Sally")
 End Sub

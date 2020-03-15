@@ -13,6 +13,7 @@ use winapi::{
         oleauto::{
             SafeArrayAccessData,
             SafeArrayUnaccessData,
+            SysAllocStringLen,
             SysStringLen,
         },
     },
@@ -115,4 +116,15 @@ pub unsafe extern "stdcall" fn word_count(bstr: BSTR) -> i32 {
     } else {
         0
     }
+}
+
+#[no_mangle]
+pub unsafe extern "stdcall" fn greet(whom: BSTR) -> BSTR {
+    let whom: &[u16] = slice::from_raw_parts(whom, SysStringLen(whom) as usize);
+    let whom = match String::from_utf16(whom) {
+        Ok(whom) => whom,
+        Err(_) => String::from("<ERROR>"),
+    };
+    let msg: Vec<u16> = format!("hello {}", whom).encode_utf16().collect();
+    SysAllocStringLen(msg.as_ptr(), msg.len() as u32)
 }
