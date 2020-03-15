@@ -6,3 +6,4 @@ EXPORTS
     dotty
     word_count
     greet
+    iota

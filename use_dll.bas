@@ -23,4 +23,11 @@ Public Sub do_it
     Debug.Print word_count("xyzzy has four words")
 
     Debug.Print greet("Sally")
+
+    Dim r() As Double
+    r = iota(33.4, 72.9, 7.3)
+    Dim i As Long
+    For i = LBound(r) To UBound(r)
+        Debug.Print "r(" & i & ") = " & r(i)
+    Next i
 End Sub

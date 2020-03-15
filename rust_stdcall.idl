@@ -56,5 +56,11 @@ library RustyVenture
         helpstring("greet somebody")
         ]
         BSTR greet([in] BSTR whom);
+
+        [
+        entry("iota"),
+        helpstring("generate a range of Doubles"),
+        ]
+        SAFEARRAY (double) iota(double from, double to, double step);
     }
 };

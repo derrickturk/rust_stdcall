@@ -4,14 +4,13 @@ use winapi::{
     ctypes::c_void,
     shared::{
         winerror::S_OK,
-        wtypes::BSTR,
+        wtypes::{BSTR, VT_R8, VARTYPE},
     },
     um::{
-        oaidl::{
-            SAFEARRAY,
-        },
+        oaidl::SAFEARRAY,
         oleauto::{
             SafeArrayAccessData,
+            SafeArrayCreateVector,
             SafeArrayUnaccessData,
             SysAllocStringLen,
             SysStringLen,
@@ -80,7 +79,8 @@ impl<T> SafeVec<T> {
     #[inline]
     pub fn as_slice_mut(&mut self) -> &mut [T] {
         unsafe {
-            slice::from_raw_parts_mut(self.buf, (*self.arr).cbElements as usize)
+            slice::from_raw_parts_mut(self.buf,
+                (*self.arr).rgsabound[0].cElements as usize)
         }
     }
 }
@@ -127,4 +127,31 @@ pub unsafe extern "stdcall" fn greet(whom: BSTR) -> BSTR {
     };
     let msg: Vec<u16> = format!("hello {}", whom).encode_utf16().collect();
     SysAllocStringLen(msg.as_ptr(), msg.len() as u32)
+}
+
+unsafe fn make_f64_safearray(data: &[f64]) -> *mut SAFEARRAY {
+    let ptr = SafeArrayCreateVector(VT_R8 as VARTYPE, 0, data.len() as u32);
+    if ptr.is_null() {
+        return ptr;
+    }
+
+    let vec = SafeVec::new(ptr);
+    match vec {
+        Some(mut vec) => vec.as_slice_mut().copy_from_slice(data),
+        None => return ptr::null_mut(),
+    };
+
+    ptr
+}
+
+#[no_mangle]
+pub unsafe extern "stdcall" fn iota(from: f64, to: f64, step: f64
+  ) -> *mut SAFEARRAY {
+    let mut r = Vec::new();
+    let mut val = from;
+    while val <= to {
+        r.push(val);
+        val += step;
+    }
+    make_f64_safearray(&r)
 }
