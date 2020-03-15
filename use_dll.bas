@@ -17,4 +17,6 @@ Public Sub do_it
     s.x = 33
     s.y = 66
     Debug.Print struct_slope(s)
+
+    Debug.Print dotty(xs, ys)
 End Sub

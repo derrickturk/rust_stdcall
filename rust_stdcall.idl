@@ -34,5 +34,15 @@ library RustyVenture
         helpstring("Struct slope"),
         ]
         double struct_slope(const MyType *s);
+
+        [
+        entry("dotty"),
+        helpstring("dot product on COM arrays"),
+        ]
+        /* here's something wacky:
+         *   we use one level of indirection here, but two in the implementing code (!)
+         *   c.f. "Essential COM" p. 342
+         */
+        double dotty([in] SAFEARRAY (double)*xs, [in] SAFEARRAY (double)*ys);
     }
 };
