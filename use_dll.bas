@@ -1,19 +1,5 @@
 Option Explicit
 
-Public Type MyType
-    x As Long
-    y As Long
-End Type
-
-Public Declare PtrSafe Function add_em Lib "rust_stdcall" ( _
-  ByVal x As Long, ByVal y As Long) As Long
-
-Public Declare PtrSafe Function dot_product Lib "rust_stdcall" ( _
-  ByRef x As Double, ByRef y As Double, ByVal n As LongPtr) As Double
-
-Public Declare PtrSafe Function struct_slope Lib "rust_stdcall" ( _
-  ByRef s As MyType) As Double
-
 Public Sub do_it
     Debug.Print add_em(1, 2)
 

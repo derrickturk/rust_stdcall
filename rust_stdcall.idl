@@ -1,0 +1,38 @@
+[
+uuid(38541DBE-A76D-4A92-AD08-F5929C6DD520),
+helpstring("calling Rust from VBA"),
+version(1.0)
+]
+library RustyVenture
+{
+    typedef struct MyType {
+        int x;
+        int y;
+    } MyType;
+
+    [
+    uuid(66E007F4-501E-46FE-9E57-8550C38A4013),
+    helpstring("the main DLL"),
+    dllname("rust_stdcall.dll"),
+    ]
+    module RustStdcall
+    {
+        [
+        entry("add_em"),
+        helpstring("Adds two numbers"),
+        ]
+        int __stdcall add_em(int x, int y);
+
+        [
+        entry("dot_product"),
+        helpstring("Dot product"),
+        ]
+        double __stdcall dot_product(const double *x, const double *y, size_t n);
+
+        [
+        entry("struct_slope"),
+        helpstring("Struct slope"),
+        ]
+        double struct_slope(const MyType *s);
+    }
+};
