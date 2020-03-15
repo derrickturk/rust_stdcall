@@ -48,37 +48,57 @@ fn dot_product_impl(x: &[f64], y: &[f64]) -> f64 {
     x.iter().zip(y.iter()).map(|(x, y)| x * y).sum()
 }
 
+struct SafeVec<T> {
+    arr: *mut SAFEARRAY,
+    buf: *mut T,
+}
+
+impl<T> SafeVec<T> {
+    #[inline]
+    pub fn new(arr: *mut SAFEARRAY) -> Option<Self> {
+        let mut buf: *mut T = ptr::null_mut();
+        unsafe {
+            if SafeArrayAccessData(
+              arr, &mut buf as *mut _ as *mut *mut c_void) != S_OK {
+                None
+            } else {
+                if (*arr).cDims != 1 {
+                    SafeArrayUnaccessData(arr);
+                    None
+                } else {
+                    Some(SafeVec { arr, buf })
+                }
+            }
+        }
+    }
+
+    #[inline]
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        unsafe {
+            slice::from_raw_parts_mut(self.buf, (*self.arr).cbElements as usize)
+        }
+    }
+}
+
+impl<T> Drop for SafeVec<T> {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { SafeArrayUnaccessData(self.arr); }
+    }
+}
+
 // see notes in IDL file - we have to use two levels of indirection here
 #[no_mangle]
 pub unsafe extern "stdcall" fn dotty(xs: *const *mut SAFEARRAY,
     ys: *const *mut SAFEARRAY) -> f64 {
 
-    let mut x_ptr: *mut f64 = ptr::null_mut();
-    let mut y_ptr: *mut f64 = ptr::null_mut();
+    let xs = SafeVec::new(*xs);
+    let ys = SafeVec::new(*ys);
 
-    let e = SafeArrayAccessData(*xs, &mut x_ptr as *mut _ as *mut *mut c_void);
-    if e != S_OK {
-        return e as f64;
+    match (xs, ys) {
+        (Some(mut xs), Some(mut ys)) => {
+            dot_product_impl(xs.as_slice_mut(), ys.as_slice_mut())
+        },
+        _ => 0.0,
     }
-
-    if SafeArrayAccessData(*ys,
-      &mut y_ptr as *mut _ as *mut *mut c_void) != S_OK {
-        SafeArrayUnaccessData(*xs);
-        return -2.0;
-    }
-
-    if (**xs).cDims != 1 || (**ys).cDims != 1 {
-        SafeArrayUnaccessData(*xs);
-        SafeArrayUnaccessData(*ys);
-        return -3.0;
-    }
-
-    let xs_slice = slice::from_raw_parts_mut(x_ptr, (**xs).cbElements as usize);
-    let ys_slice = slice::from_raw_parts_mut(y_ptr, (**ys).cbElements as usize);
-    let ret = dot_product_impl(xs_slice, ys_slice);
-
-    SafeArrayUnaccessData(*xs);
-    SafeArrayUnaccessData(*ys);
-
-    ret
 }
