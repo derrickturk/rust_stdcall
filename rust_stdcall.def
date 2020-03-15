@@ -1,0 +1,5 @@
+LIBRARY rust_stdcall
+EXPORTS
+    add_em
+    dot_product
+    struct_slope
