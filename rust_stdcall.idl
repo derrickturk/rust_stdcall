@@ -71,12 +71,11 @@ library RustyVenture
         ]
         HRESULT greet([in] BSTR whom, [out, retval] BSTR *greeting);
 
-        // TODO: horrible trouble if range is [out, retval]
         [
         entry("iota"),
         helpstring("generate a range of Doubles"),
         ]
         HRESULT iota(double from, double to, double step,
-          [out] SAFEARRAY (double)*range);
+          [out, retval] SAFEARRAY (double)*range);
     }
 };
