@@ -69,12 +69,14 @@ library RustyVenture
         entry("greet"),
         helpstring("greet somebody"),
         ]
-        BSTR greet([in] BSTR whom);
+        HRESULT greet([in] BSTR whom, [out, retval] BSTR *greeting);
 
+        // TODO: horrible trouble if range is [out, retval]
         [
         entry("iota"),
         helpstring("generate a range of Doubles"),
         ]
-        SAFEARRAY (double) iota(double from, double to, double step);
+        HRESULT iota(double from, double to, double step,
+          [out] SAFEARRAY (double)*range);
     }
 };

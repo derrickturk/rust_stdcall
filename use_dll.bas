@@ -35,7 +35,7 @@ DIV0:
     Debug.Print greet("Sally")
 
     Dim r() As Double
-    r = iota(33.4, 72.9, 7.3)
+    iota 33.4, 72.9, 7.3, r
     Dim i As Long
     For i = LBound(r) To UBound(r)
         Debug.Print "r(" & i & ") = " & r(i)

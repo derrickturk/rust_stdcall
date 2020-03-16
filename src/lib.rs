@@ -138,46 +138,47 @@ pub unsafe extern "stdcall" fn word_count(bstr: BSTR, count: &mut i32) -> HRESUL
 }
 
 #[no_mangle]
-pub unsafe extern "stdcall" fn greet(whom: BSTR) -> BSTR {
+pub unsafe extern "stdcall" fn greet(whom: BSTR, greeting: &mut BSTR) -> HRESULT {
     let whom: &[u16] = slice::from_raw_parts(whom, SysStringLen(whom) as usize);
     let whom = match String::from_utf16(whom) {
         Ok(whom) => whom,
-        Err(_) => {
-            // SetLastError(E_INVALID_STRING);
-            return ptr::null_mut();
-        },
+        Err(_) => return E_INVALID_STRING,
     };
     let msg: Vec<u16> = format!("hello {}", whom).encode_utf16().collect();
-    SysAllocStringLen(msg.as_ptr(), msg.len() as u32)
+    *greeting = SysAllocStringLen(msg.as_ptr(), msg.len() as u32);
+    S_OK
 }
 
-unsafe fn make_f64_safearray(data: &[f64]) -> *mut SAFEARRAY {
-    let ptr = SafeArrayCreateVector(VT_R8 as VARTYPE, 0, data.len() as u32);
-    if ptr.is_null() {
-        // SetLastError(E_ALLOC_ARRAY);
-        return ptr;
-    }
+unsafe fn make_f64_safearray(data: &[f64]
+  ) -> Result<ptr::NonNull<SAFEARRAY>, HRESULT> {
+    let ptr = ptr::NonNull::new(
+        SafeArrayCreateVector(VT_R8 as VARTYPE, 0, data.len() as u32)
+    ).ok_or(E_ALLOC_ARRAY)?;
 
-    let vec = SafeVec::new(ptr);
+    let vec = SafeVec::new(ptr.as_ptr());
     match vec {
         Some(mut vec) => vec.as_slice_mut().copy_from_slice(data),
-        None => {
-            // SetLastError(E_LOCK_ARRAY);
-            return ptr::null_mut();
-        }
+        None => return Err(E_LOCK_ARRAY),
     };
 
-    ptr
+    Ok(ptr)
 }
 
 #[no_mangle]
-pub unsafe extern "stdcall" fn iota(from: f64, to: f64, step: f64
-  ) -> *mut SAFEARRAY {
+pub unsafe extern "stdcall" fn iota(from: f64, to: f64, step: f64,
+  range: &mut *mut SAFEARRAY) -> HRESULT {
     let mut r = Vec::new();
     let mut val = from;
     while val <= to {
         r.push(val);
         val += step;
     }
-    make_f64_safearray(&r)
+
+    match make_f64_safearray(&r) {
+        Ok(ptr) => {
+            *range = ptr.as_ptr();
+            S_OK
+        },
+        Err(e) => e,
+    }
 }
