@@ -5,6 +5,7 @@ version(1.0)
 ]
 library RustyVenture
 {
+    [helpstring("A structured type")]
     typedef struct MyType {
         int x;
         int y;
@@ -17,6 +18,18 @@ library RustyVenture
     ]
     module RustStdcall
     {
+        [helpstring("Unable to allocate SAFEARRAY")]
+        const DWORD E_ALLOC_ARRAY = 0x20000000 | 0x01;
+
+        [helpstring("Unable to lock SAFEARRAY")]
+        const DWORD E_LOCK_ARRAY = 0x20000000 | 0x02;
+
+        [helpstring("Not a valid UTF-16 string")]
+        const DWORD E_INVALID_STRING = 0x20000000 | 0x03;
+
+        [helpstring("Division by zero")]
+        const DWORD E_DIV_0 = 0x20000000 | 0x04;
+
         [
         entry("add_em"),
         helpstring("Adds two numbers"),
@@ -32,12 +45,14 @@ library RustyVenture
         [
         entry("struct_slope"),
         helpstring("Struct slope"),
+        usesgetlasterror,
         ]
         double struct_slope(const MyType *s);
 
         [
         entry("dotty"),
         helpstring("dot product on COM arrays"),
+        usesgetlasterror,
         ]
         /* here's something wacky:
          *   we use one level of indirection here, but two in the implementing code (!)
@@ -47,19 +62,22 @@ library RustyVenture
 
         [
         entry("word_count"),
-        helpstring("count whitespace-separated words")
+        helpstring("count whitespace-separated words"),
+        usesgetlasterror,
         ]
         int word_count([in] BSTR bstr);
 
         [
         entry("greet"),
-        helpstring("greet somebody")
+        helpstring("greet somebody"),
+        usesgetlasterror,
         ]
         BSTR greet([in] BSTR whom);
 
         [
         entry("iota"),
         helpstring("generate a range of Doubles"),
+        usesgetlasterror,
         ]
         SAFEARRAY (double) iota(double from, double to, double step);
     }

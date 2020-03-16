@@ -17,6 +17,11 @@ Public Sub do_it
     s.x = 33
     s.y = 66
     Debug.Print struct_slope(s)
+    s.y = 0
+    Debug.Print struct_slope(s)
+    If Err.LastDLLError <> 0 Then
+        Debug.Print "but that produced error " & Err.LastDLLError
+    End If
 
     Debug.Print dotty(xs, ys)
 

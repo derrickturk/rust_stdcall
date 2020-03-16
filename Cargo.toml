@@ -6,8 +6,9 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-winapi = { version = "0.3", features = ["oaidl", "oleauto", "winerror"] }
+[dependencies.winapi]
+version = "0.3"
+features = ["errhandlingapi", "oaidl", "oleauto", "winerror"]
 
 [lib]
 crate-type = ["cdylib"]
