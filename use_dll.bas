@@ -1,6 +1,6 @@
 Option Explicit
 
-Public Sub do_it
+Public Sub do_it()
     Debug.Print add_em(1, 2)
 
     Dim xs(1 To 3) As Double
@@ -17,11 +17,16 @@ Public Sub do_it
     s.x = 33
     s.y = 66
     Debug.Print struct_slope(s)
+
     s.y = 0
+    On Error GoTo DIV0
     Debug.Print struct_slope(s)
-    If Err.LastDLLError <> 0 Then
-        Debug.Print "but that produced error " & Err.LastDLLError
+DIV0:
+    ' TODO: why can't VBA use the constants in the TLB?
+    If Err.Number = &H90000004 Then
+        Debug.Print "division by zero attempted"
     End If
+    On Error GoTo 0
 
     Debug.Print dotty(xs, ys)
 

@@ -3,12 +3,10 @@ use std::{ptr, slice};
 use winapi::{
     ctypes::c_void,
     shared::{
-        minwindef::DWORD,
-        winerror::S_OK,
+        winerror::{HRESULT, S_OK},
         wtypes::{BSTR, VT_R8, VARTYPE},
     },
     um::{
-        errhandlingapi::SetLastError,
         oaidl::SAFEARRAY,
         oleauto::{
             SafeArrayAccessData,
@@ -20,10 +18,10 @@ use winapi::{
     },
 };
 
-pub const E_ALLOC_ARRAY: DWORD = 0x20000000 | 0x01;
-pub const E_LOCK_ARRAY: DWORD = 0x20000000 | 0x02;
-pub const E_INVALID_STRING: DWORD = 0x20000000 | 0x03;
-pub const E_DIV_0: DWORD = 0x20000000 | 0x04;
+pub const E_ALLOC_ARRAY: HRESULT = 0x90000001u32 as HRESULT;
+pub const E_LOCK_ARRAY: HRESULT = 0x90000002u32 as HRESULT;
+pub const E_INVALID_STRING: HRESULT = 0x90000003u32 as HRESULT;
+pub const E_DIV_0: HRESULT = 0x90000004u32 as HRESULT;
 
 #[repr(C)]
 pub struct MyType {
@@ -47,12 +45,14 @@ pub extern "stdcall" fn add_em(x: i32, y: i32) -> i32 {
 }
 
 #[no_mangle]
-pub extern "stdcall" fn struct_slope(s: &MyType) -> f64 {
+pub extern "stdcall" fn struct_slope(s: &MyType, result: &mut f64) -> HRESULT {
     match s.ratio() {
-        Some(r) => r,
+        Some(r) => {
+            *result = r;
+            S_OK
+        }
         None => {
-            unsafe { SetLastError(E_DIV_0) };
-            0.0
+            E_DIV_0
         },
     }
 }
@@ -112,30 +112,28 @@ impl<T> Drop for SafeVec<T> {
 // see notes in IDL file - we have to use two levels of indirection here
 #[no_mangle]
 pub unsafe extern "stdcall" fn dotty(xs: *const *mut SAFEARRAY,
-    ys: *const *mut SAFEARRAY) -> f64 {
+    ys: *const *mut SAFEARRAY, result: &mut f64) -> HRESULT {
 
     let xs = SafeVec::new(*xs);
     let ys = SafeVec::new(*ys);
 
     match (xs, ys) {
         (Some(mut xs), Some(mut ys)) => {
-            dot_product_impl(xs.as_slice_mut(), ys.as_slice_mut())
+            *result = dot_product_impl(xs.as_slice_mut(), ys.as_slice_mut());
+            S_OK
         },
-        _ => {
-            SetLastError(E_LOCK_ARRAY);
-            0.0
-        },
+        _ => E_LOCK_ARRAY,
     }
 }
 
 #[no_mangle]
-pub unsafe extern "stdcall" fn word_count(bstr: BSTR) -> i32 {
+pub unsafe extern "stdcall" fn word_count(bstr: BSTR, count: &mut i32) -> HRESULT {
     let bstr: &[u16] = slice::from_raw_parts(bstr, SysStringLen(bstr) as usize);
     if let Ok(bstr) = String::from_utf16(bstr) {
-        bstr.split_whitespace().count() as i32
+        *count = bstr.split_whitespace().count() as i32;
+        S_OK
     } else {
-        SetLastError(E_INVALID_STRING);
-        0
+        E_INVALID_STRING
     }
 }
 
@@ -145,7 +143,7 @@ pub unsafe extern "stdcall" fn greet(whom: BSTR) -> BSTR {
     let whom = match String::from_utf16(whom) {
         Ok(whom) => whom,
         Err(_) => {
-            SetLastError(E_INVALID_STRING);
+            // SetLastError(E_INVALID_STRING);
             return ptr::null_mut();
         },
     };
@@ -156,7 +154,7 @@ pub unsafe extern "stdcall" fn greet(whom: BSTR) -> BSTR {
 unsafe fn make_f64_safearray(data: &[f64]) -> *mut SAFEARRAY {
     let ptr = SafeArrayCreateVector(VT_R8 as VARTYPE, 0, data.len() as u32);
     if ptr.is_null() {
-        SetLastError(E_ALLOC_ARRAY);
+        // SetLastError(E_ALLOC_ARRAY);
         return ptr;
     }
 
@@ -164,7 +162,7 @@ unsafe fn make_f64_safearray(data: &[f64]) -> *mut SAFEARRAY {
     match vec {
         Some(mut vec) => vec.as_slice_mut().copy_from_slice(data),
         None => {
-            SetLastError(E_LOCK_ARRAY);
+            // SetLastError(E_LOCK_ARRAY);
             return ptr::null_mut();
         }
     };

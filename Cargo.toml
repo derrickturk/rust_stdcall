@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies.winapi]
 version = "0.3"
-features = ["errhandlingapi", "oaidl", "oleauto", "winerror"]
+features = ["oaidl", "oleauto", "winerror"]
 
 [lib]
 crate-type = ["cdylib"]
